@@ -19,6 +19,14 @@ let x = d3.scaleLog()
 let xAxisGroup = graphGroup.append('g')
 	.attr('class', 'x-axis')
 	.attr('transform', 'translate(0, ' + canvasHeight + ')')
+	
+graphGroup.append('text')
+	.attr('class', 'x-axis-label')
+	.attr('x', canvasWidth / 2)
+	.attr('y', canvasHeight + 40)
+	.attr('text-anchor', 'middle')
+	.style('font-size', '20px')
+	.text('Average Income')
 
 // Y AXIS
 
@@ -27,11 +35,30 @@ let y = d3.scaleLinear()
 	
 let yAxisGroup = graphGroup.append('g')
 	.attr('class', 'y-axis')
+	
+graphGroup.append('text')
+	.attr('class', 'y-axis-label')
+	.attr('x', -(canvasHeight / 2))
+	.attr('y', -40)
+	.attr('text-anchor', 'middle')
+	.style('font-size', '20px')
+	.attr('transform', 'rotate(-90)')
+	.text('Average Age')
 
 // RADIUS
 
 let radiusScale = d3.scaleLinear()
 	.range([5 * Math.PI, 1500 * Math.PI])
+	
+// YEAR LABEL
+
+let yearLabel = graphGroup.append("text")
+	.attr("class", "year-label")
+	.attr('x', canvasWidth -30)
+	.attr('y', canvasHeight - 20)
+	.attr('text-anchor', 'middle')
+	.style('font-size', '20px')
+	.text("")
 
 d3.json("data/data.json").then(data => {
 	
@@ -76,7 +103,7 @@ d3.json("data/data.json").then(data => {
 			if (currentYearIndex == years.length) {
 				endDataTimer = 20
 			}
-			update(formattedData[currentYearIndex], maxLifeExpectancy, maxIncome, maxPopulation, lowestIncome, continents, lowestPopulation)
+			update(formattedData[currentYearIndex], maxLifeExpectancy, maxIncome, maxPopulation, lowestIncome, continents, lowestPopulation, years[currentYearIndex])
 		} else {
 			endDataTimer--
 			if (endDataTimer == 0) {
@@ -84,13 +111,13 @@ d3.json("data/data.json").then(data => {
 			}
 		}
 	}, 100)
-	update(formattedData[0], maxLifeExpectancy, maxIncome, maxPopulation, lowestIncome, continents, lowestPopulation)
+	update(formattedData[0], maxLifeExpectancy, maxIncome, maxPopulation, lowestIncome, continents, lowestPopulation, years[currentYearIndex])
 	
 }).catch(error => {
 	console.log(error)
 })
 
-const update = (data, maxLifeExpectancy, maxIncome, maxPopulation, lowestIncome, continents, lowestPopulation) => {
+const update = (data, maxLifeExpectancy, maxIncome, maxPopulation, lowestIncome, continents, lowestPopulation, currentYear) => {
 	let t = d3.transition().duration(100)
 	
 	x.domain([lowestIncome - 50, maxIncome])
@@ -98,6 +125,9 @@ const update = (data, maxLifeExpectancy, maxIncome, maxPopulation, lowestIncome,
 	radiusScale.domain([lowestPopulation, maxPopulation])
 	
 	let xAxisCall = d3.axisBottom(x).tickValues([400, 4000, 40000])
+		.tickFormat((label) => {
+			return ("$" + label)
+		})
 	xAxisGroup.call(xAxisCall)
 	
 	let yAxisCall = d3.axisLeft(y)
@@ -109,6 +139,8 @@ const update = (data, maxLifeExpectancy, maxIncome, maxPopulation, lowestIncome,
 	
 	let circles = graphGroup.selectAll('circle')
 		.data(data, (data) => { return data.country })
+	
+	yearLabel.text(currentYear)
 	
 	circles.exit()
 		.attr('class', 'exit')
