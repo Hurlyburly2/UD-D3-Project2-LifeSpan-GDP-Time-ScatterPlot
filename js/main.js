@@ -27,9 +27,9 @@ d3.json("data/data.json").then(data => {
 		year.year = parseInt(year)
 	})
 	
-	d3.interval(() => {
-		update(data)
-	}, 500)
+	// d3.interval(() => {
+	// 	update(data)
+	// }, 500)
 	update(data)
 	
 }).catch(error => {
