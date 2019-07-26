@@ -20,11 +20,18 @@ let xAxisGroup = graphGroup.append('g')
 	.attr('class', 'x-axis')
 	.attr('transform', 'translate(0, ' + canvasHeight + ')')
 
+// Y AXIS
+
 let y = d3.scaleLinear()
 	.range([canvasHeight, 0])
 	
 let yAxisGroup = graphGroup.append('g')
 	.attr('class', 'y-axis')
+
+// RADIUS
+
+let radiusScale = d3.scaleLinear()
+	.range([5 * Math.PI, 1500 * Math.PI])
 
 d3.json("data/data.json").then(data => {
 	
@@ -34,7 +41,9 @@ d3.json("data/data.json").then(data => {
 	let lowestIncome = 1000000000
 	let continents = []
 	let currentYearIndex = 0
+	let endDataTimer = 0
 	let formattedData = []
+	let lowestPopulation = 10000000
 	let years = []
 	
 	data.forEach(year => {
@@ -52,29 +61,41 @@ d3.json("data/data.json").then(data => {
 			if (country.income > maxIncome) { maxIncome = country.income }
 			if (country.income < lowestIncome) { lowestIncome = country.income }
 			if (country.population > maxPopulation) { maxPopulation = country.population }
+			if (country.population < lowestPopulation) { lowestPopulation = country.population }
 			if (!continents.includes(country.continent)) {
 				continents.push(country.continent)
 			}
 		})
 		year.year = parseInt(year.year)
-		years.push(year)
+		years.push(year.year)
 	})
 	
 	d3.interval(() => {
-		currentYearIndex++
-		update(formattedData[currentYearIndex], maxLifeExpectancy, maxIncome, maxPopulation, lowestIncome, continents)
+		if (endDataTimer == 0) {
+			currentYearIndex++
+			if (currentYearIndex == years.length) {
+				endDataTimer = 20
+			}
+			update(formattedData[currentYearIndex], maxLifeExpectancy, maxIncome, maxPopulation, lowestIncome, continents, lowestPopulation)
+		} else {
+			endDataTimer--
+			if (endDataTimer == 0) {
+				currentYearIndex = 0
+			}
+		}
 	}, 100)
-	update(formattedData[0], maxLifeExpectancy, maxIncome, maxPopulation, lowestIncome, continents)
+	update(formattedData[0], maxLifeExpectancy, maxIncome, maxPopulation, lowestIncome, continents, lowestPopulation)
 	
 }).catch(error => {
 	console.log(error)
 })
 
-const update = (data, maxLifeExpectancy, maxIncome, maxPopulation, lowestIncome, continents) => {
+const update = (data, maxLifeExpectancy, maxIncome, maxPopulation, lowestIncome, continents, lowestPopulation) => {
 	let t = d3.transition().duration(100)
 	
 	x.domain([lowestIncome - 50, maxIncome])
 	y.domain([0, maxLifeExpectancy ])
+	radiusScale.domain([lowestPopulation, maxPopulation])
 	
 	let xAxisCall = d3.axisBottom(x).tickValues([400, 4000, 40000])
 	xAxisGroup.call(xAxisCall)
@@ -98,11 +119,12 @@ const update = (data, maxLifeExpectancy, maxIncome, maxPopulation, lowestIncome,
 			.attr('class', 'enter')
 			.attr('cx', (data) => { return x(data.income) })
 			.attr('cy', (data) => { return y(data.life_exp) })
-			.attr('r', 5 )
+			.attr('r', (data) => { return Math.sqrt(radiusScale(data.population) / Math.PI) } )
 			.attr('fill', (data) => { return colors(data.continent) })
 			.merge(circles)
 			.transition(t)
 				.attr('cx', (data) => { return x(data.income) })
 				.attr('cy', (data) => { return y(data.life_exp) })
+				.attr('r', (data) => { return Math.sqrt(radiusScale(data.population) / Math.PI) } )
 		
 }
