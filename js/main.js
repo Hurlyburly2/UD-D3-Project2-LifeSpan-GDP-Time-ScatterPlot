@@ -9,6 +9,13 @@ let svg = d3.select('#chart-area').append('svg')
 	
 let graphGroup = svg.append('g')
 	.attr('transform', 'translate(' + margin.left + ', ' + margin.top + ')')
+	
+let x = d3.scaleLog()
+	.range([0, canvasWidth])
+	.base(5)
+	
+let y = d3.scaleLinear()
+	.range([canvasHeight, 0])
 
 d3.json("data/data.json").then(data => {
 	
@@ -24,27 +31,24 @@ d3.json("data/data.json").then(data => {
 			country.life_exp = parseInt(country.life_exp)
 			country.population = parseInt(country.population)
 		})
-		year.year = parseInt(year)
+		year.year = parseInt(year.year)
 	})
 	
 	// d3.interval(() => {
 	// 	update(data)
 	// }, 500)
-	update(data)
+	update(data[0])
 	
 }).catch(error => {
 	console.log(error)
 })
 
 const update = (data) => {
-	let points = graphGroup.selectAll('rect')
-		.data(data, (data) => { return data.year })
+	let countries = data.countries
 	
-	points.enter()
-		.append('rect')
-		.attr('x', 0)
-		.attr('y', 0)
-		.attr('width', canvasWidth)
-		.attr('height', canvasHeight)
-		.attr('fill', 'grey')
+	x.domain(countries.map((country) => { return country.income }))
+	y.domain([0, d3.max(countries, (country) => { return country.life_exp })])
+	
+	let points = graphGroup.selectAll('circle')
+		// .data(countries, (country) => { return country.income })
 }
