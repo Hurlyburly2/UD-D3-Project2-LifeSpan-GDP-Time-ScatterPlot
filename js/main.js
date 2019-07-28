@@ -10,6 +10,34 @@ let svg = d3.select('#chart-area').append('svg')
 let graphGroup = svg.append('g')
 	.attr('transform', 'translate(' + margin.left + ', ' + margin.top + ')')
 
+// LEGEND
+
+let continents = ["europe", "asia", "americas", "africa"]
+
+let colors = d3.scaleOrdinal()
+	.domain(continents.map((continent) => { return continent }))
+	.range(d3.schemeCategory10)
+
+let legend = graphGroup.append('g')
+	.attr('transform', 'translate(' + (canvasWidth - 10) + "," + (canvasHeight - 125)+ ')')
+	
+continents.forEach((continent, index) => {
+	let legendRow = legend.append('g')
+		.attr('transform', 'translate(0, ' + (index * 20) + ')')		// offsets each row of the legend so they appear on top of each other
+		
+	legendRow.append('rect')
+		.attr('width', 10)
+		.attr('height', 10)
+		.attr('fill', colors(continent))
+		
+	legendRow.append('text')
+		.attr('x', -10)
+		.attr('y', 10)
+		.attr('text-anchor', 'end')
+		.style('text-transform', 'capitalize')		// Style sets CSS styles (some styles CANNOT be attributes)
+		.text(continent)
+})
+
 // X AXIS 
 	
 let x = d3.scaleLog()
@@ -132,10 +160,6 @@ const update = (data, maxLifeExpectancy, maxIncome, maxPopulation, lowestIncome,
 	
 	let yAxisCall = d3.axisLeft(y)
 	yAxisGroup.call(yAxisCall)
-	
-	let colors = d3.scaleOrdinal()
-		.domain(continents.map((continent) => { return continent }))
-		.range(d3.schemeCategory10)
 	
 	let circles = graphGroup.selectAll('circle')
 		.data(data, (data) => { return data.country })
