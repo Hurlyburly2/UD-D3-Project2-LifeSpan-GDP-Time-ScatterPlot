@@ -10,6 +10,19 @@ let svg = d3.select('#chart-area').append('svg')
 let graphGroup = svg.append('g')
 	.attr('transform', 'translate(' + margin.left + ', ' + margin.top + ')')
 
+// Tooltip
+
+let tip = d3.tip().attr('class', 'd3-tip')
+	.html((data) => {
+		let text = "<string>Country:</strong> <span style='color:red'>" + data.country + "</span><br>"
+		text += "<strong>Continent:</strong> <span style='color:red;text-transform:capitalize'>" + data.continent + "</span><br>"
+		text += "<strong>Life Expectancy:</strong> <span style='color:red'>" + d3.format(".2f")(data.life_exp) + "</span><br>"
+		text += "<strong>GDP Pet Capita:</strong> <span style='color:red'>" + d3.format("$,.0f")(data.income) + "</span><br>"
+		text += "<strong>Population:</strong> <span style='color:red'>" + d3.format(",.0f")(data.population) + "</span><br>"
+		return text
+	})
+graphGroup.call(tip)
+
 // LEGEND
 
 let continents = ["europe", "asia", "americas", "africa"]
@@ -177,6 +190,8 @@ const update = (data, maxLifeExpectancy, maxIncome, maxPopulation, lowestIncome,
 			.attr('cy', (data) => { return y(data.life_exp) })
 			.attr('r', (data) => { return Math.sqrt(radiusScale(data.population) / Math.PI) } )
 			.attr('fill', (data) => { return colors(data.continent) })
+			.on('mouseover', tip.show)
+			.on('mouseout', tip.hide)
 			.merge(circles)
 			.transition(t)
 				.attr('cx', (data) => { return x(data.income) })
