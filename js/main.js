@@ -100,19 +100,30 @@ let yearLabel = graphGroup.append("text")
 	.attr('text-anchor', 'middle')
 	.style('font-size', '20px')
 	.text("")
+	
+// global stuff
+
+let currentYearIndex = 0
+let endDataTimer = 0
+let interval
+let formattedData
+let years
+let maxLifeExpectancy
+let maxIncome
+let maxPopulation
+let lowestIncome
+let lowestPopulation
 
 d3.json("data/data.json").then(data => {
 	
-	let maxLifeExpectancy = 0
-	let maxIncome = 0
-	let maxPopulation = 0
-	let lowestIncome = 1000000000
+	maxLifeExpectancy = 0
+	maxIncome = 0
+	maxPopulation = 0
+	lowestIncome = 1000000000
 	let continents = []
-	let currentYearIndex = 0
-	let endDataTimer = 0
-	let formattedData = []
-	let lowestPopulation = 10000000
-	let years = []
+	formattedData = []
+	lowestPopulation = 10000000
+	years = []
 	
 	data.forEach(year => {
 		formattedData.push(year.countries.filter((country) => {
@@ -138,28 +149,63 @@ d3.json("data/data.json").then(data => {
 		years.push(year.year)
 	})
 	
-	d3.interval(() => {
-		if (endDataTimer == 0) {
-			currentYearIndex++
-			if (currentYearIndex == years.length) {
-				endDataTimer = 20
-			}
-			update(formattedData[currentYearIndex], maxLifeExpectancy, maxIncome, maxPopulation, lowestIncome, continents, lowestPopulation, years[currentYearIndex])
-		} else {
-			endDataTimer--
-			if (endDataTimer == 0) {
-				currentYearIndex = 0
-			}
-		}
-	}, 100)
 	update(formattedData[0], maxLifeExpectancy, maxIncome, maxPopulation, lowestIncome, continents, lowestPopulation, years[currentYearIndex])
 	
 }).catch(error => {
 	console.log(error)
 })
 
+$("#play-button")
+	.on("click", () => {
+		var button = $("#play-button")
+		if (button.text() == "Play") {
+			button.text("Pause");
+			interval = setInterval(step, 100)
+		} else {
+			button.text("Play")
+			clearInterval(interval)
+		}
+	})
+	
+$("#reset-button")
+	.on("click", () => {
+		currentYearIndex = 0
+		update(formattedData[currentYearIndex], maxLifeExpectancy, maxIncome, maxPopulation, lowestIncome, continents, lowestPopulation, years[currentYearIndex])
+	})
+	
+$("#continent-select")
+	.on('change', () => {
+		update(formattedData[currentYearIndex], maxLifeExpectancy, maxIncome, maxPopulation, lowestIncome, continents, lowestPopulation, years[currentYearIndex])
+	})
+
+const step = () => {
+	if (endDataTimer == 0) {
+		currentYearIndex++
+		if (currentYearIndex == years.length) {
+			endDataTimer = 20
+		}
+		update(formattedData[currentYearIndex], maxLifeExpectancy, maxIncome, maxPopulation, lowestIncome, continents, lowestPopulation, years[currentYearIndex])
+	} else {
+		endDataTimer--
+		if (endDataTimer == 0) {
+			currentYearIndex = 0
+		}
+	}
+}
+
 const update = (data, maxLifeExpectancy, maxIncome, maxPopulation, lowestIncome, continents, lowestPopulation, currentYear) => {
 	let t = d3.transition().duration(100)
+	
+	let contSelect = $("#continent-select").val()
+	
+	data = data.filter((data) => {
+		if (contSelect == "all") {
+			return true
+		} else {
+			debugger
+			return data.continent == contSelect
+		}
+	})
 	
 	x.domain([lowestIncome - 50, maxIncome])
 	y.domain([0, maxLifeExpectancy ])
