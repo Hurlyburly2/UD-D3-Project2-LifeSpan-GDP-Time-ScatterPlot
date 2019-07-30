@@ -177,6 +177,16 @@ $("#continent-select")
 	.on('change', () => {
 		update(formattedData[currentYearIndex], maxLifeExpectancy, maxIncome, maxPopulation, lowestIncome, continents, lowestPopulation, years[currentYearIndex])
 	})
+	
+$("#date-slider").slider({
+	max: 2014,
+	min: 1800,
+	step: 1,
+	slide: function(event, ui){
+		currentYearIndex = ui.value - 1800;
+		update(formattedData[currentYearIndex], maxLifeExpectancy, maxIncome, maxPopulation, lowestIncome, continents, lowestPopulation, years[currentYearIndex])
+	}
+})
 
 const step = () => {
 	if (endDataTimer == 0) {
@@ -244,4 +254,6 @@ const update = (data, maxLifeExpectancy, maxIncome, maxPopulation, lowestIncome,
 				.attr('cy', (data) => { return y(data.life_exp) })
 				.attr('r', (data) => { return Math.sqrt(radiusScale(data.population) / Math.PI) } )
 		
+		$("#year")[0].innerHTML = +(currentYearIndex + 1800)
+		$("#date-slider").slider("value", +(currentYearIndex + 1800))
 }
